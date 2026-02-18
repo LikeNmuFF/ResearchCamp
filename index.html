@@ -519,7 +519,7 @@ footer {
   <header>
     <div class="company-brand">
       <div class="rc-badge">
-        <img src="assets/ResearchCamp-logo.png" alt="ResearchCamp logo" />
+        <img src="assets/ResearchCamp-logo1.png" alt="ResearchCamp logo" />
       </div>
       <div>
         <span class="rc-name">ResearchCamp</span>
@@ -726,6 +726,61 @@ footer {
   const pulses = [];
   let pulseTimer = 0;
 
+  // Payments travel from industry -> researcher after a doc pulse completes
+  const payments = [];
+  function spawnPayment(fromNode, toNode) {
+    payments.push({ from: fromNode, to: toNode, prog: 0, speed: 0.012 });
+  }
+
+  function drawPayment(p) {
+    const prog = p.prog;
+    const hub = nodes[0];
+    const ind = p.from; // industry node
+    const r = p.to;     // researcher node
+
+    let x = ind.x, y = ind.y;
+    if (prog < 0.5) {
+      // industry -> hub (follow same curve used for hub->industry but reversed)
+      const t = prog * 2;
+      const sx = ind.x, sy = ind.y;
+      const ex = hub.x, ey = hub.y;
+      const mx = (hub.x + ind.x) / 2 + 15;
+      const my = (hub.y + ind.y) / 2;
+      x = (1-t)*(1-t)*sx + 2*(1-t)*t*mx + t*t*ex;
+      y = (1-t)*(1-t)*sy + 2*(1-t)*t*my + t*t*ey;
+    } else {
+      // hub -> researcher (follow same curve used for researcher->hub but reversed)
+      const t = (prog - 0.5) * 2;
+      const sx = hub.x, sy = hub.y;
+      const ex = r.x, ey = r.y;
+      const mx = (r.x + hub.x) / 2 - 15;
+      const my = (r.y + hub.y) / 2;
+      x = (1-t)*(1-t)*sx + 2*(1-t)*t*mx + t*t*ex;
+      y = (1-t)*(1-t)*sy + 2*(1-t)*t*my + t*t*ey;
+    }
+
+    // coin shadow
+    const shadow = cx.createRadialGradient(x+1,y+2,0, x+1,y+2,12);
+    shadow.addColorStop(0, 'rgba(0,0,0,0.12)');
+    shadow.addColorStop(1, 'rgba(0,0,0,0)');
+    cx.fillStyle = shadow;
+    cx.beginPath(); cx.ellipse(x, y+3, 8, 3, 0, 0, Math.PI*2); cx.fill();
+
+    // coin body
+    const cg = cx.createRadialGradient(x-2,y-2,1, x,y,10);
+    cg.addColorStop(0, '#fff7d9');
+    cg.addColorStop(1, '#d9a400');
+    cx.fillStyle = cg;
+    cx.beginPath(); cx.arc(x, y, 6, 0, Math.PI*2); cx.fill();
+    cx.strokeStyle = 'rgba(0,0,0,0.12)'; cx.lineWidth = 0.8; cx.stroke();
+
+    // coin symbol: dollar sign
+    cx.fillStyle = 'rgba(0,0,0,0.6)';
+    cx.font = '600 8px Manrope, sans-serif';
+    cx.textAlign = 'center'; cx.textBaseline = 'middle';
+    cx.fillText('$', x, y+0.5);
+  }
+
   function spawnPulse() {
     // Pick a random researcher and a random industry node to connect through hub
     const researchers = nodes.filter(n => n.type === 'researcher');
@@ -857,8 +912,25 @@ footer {
     // Update & draw pulses
     for (let i = pulses.length-1; i >= 0; i--) {
       pulses[i].prog += pulses[i].speed;
-      if (pulses[i].prog >= 1) { pulses.splice(i,1); continue; }
+      if (pulses[i].prog >= 1) { 
+        // when a doc pulse reaches industry, spawn a payment back to researcher
+        spawnPayment(pulses[i].to, pulses[i].from);
+        pulses.splice(i,1); 
+        continue; 
+      }
       drawPulse(pulses[i]);
+    }
+
+    // Update & draw payments (industry -> researcher)
+    for (let i = payments.length-1; i >= 0; i--) {
+      payments[i].prog += payments[i].speed;
+      if (payments[i].prog >= 1) {
+        // mark recipient (researcher) with a short highlight
+        payments[i].to.lastPaymentTime = Date.now();
+        payments.splice(i,1);
+        continue;
+      }
+      drawPayment(payments[i]);
     }
 
     // Draw nodes
@@ -866,12 +938,24 @@ footer {
       const c = COLORS[n.type];
       const rgb = n.type==='hub' ? '22,18,13' : n.type==='researcher' ? '74,127,193' : '232,86,10';
 
-      // Glow ring
+      // Glow ring (base)
       if (n.type !== 'hub') {
         cx.beginPath();
         cx.arc(n.x, n.y, n.r + 6, 0, Math.PI*2);
         cx.fillStyle = `rgba(${rgb},0.07)`;
         cx.fill();
+
+        // stronger payment highlight when a payment recently arrived
+        if (n.lastPaymentTime) {
+          const elapsed = Date.now() - n.lastPaymentTime;
+          if (elapsed < 900) {
+            const a = 1 - (elapsed / 900);
+            cx.beginPath();
+            cx.arc(n.x, n.y, n.r + 12 + (a*6), 0, Math.PI*2);
+            cx.fillStyle = `rgba(${rgb},${0.12 * a})`;
+            cx.fill();
+          }
+        }
       }
 
       // Main circle
