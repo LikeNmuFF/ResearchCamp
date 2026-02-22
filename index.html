@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ResearchCamp | Thinka</title>
     <meta name="description" content="Thinka by ResearchCamp: A digital platform bridging researchers and industry for collaborative R&D.">
-    <link rel="icon" href="assets/ResearchCamp-logo.png" type="image/png">
+    <link rel="icon" href="assets/ResearchCamp-logo1.png" type="image/png">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- EmailJS SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
         *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
@@ -31,7 +33,6 @@
             cursor: default;
         }
 
-        /* ── noise texture ── */
         body::after {
             content:'';
             position:fixed; inset:0;
@@ -66,7 +67,6 @@
             margin:0 auto;
         }
 
-        /* ── header ── */
         header {
             display:flex;
             justify-content:space-between;
@@ -83,7 +83,6 @@
             font-size:14px;
             font-weight:700;
             letter-spacing:0.04em;
-            /* Synced to Ember theme */
             background: linear-gradient(135deg, var(--ink) 0%, var(--ember) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -108,7 +107,6 @@
             border-radius:50px;
         }
 
-        /* ── content ── */
         .center {
             display:grid;
             grid-template-columns: 1.1fr 0.9fr;
@@ -207,7 +205,6 @@
         }
         .pillar:hover { background:var(--ember); border-color:var(--ember); color:#fff; }
 
-        /* ── right visual ── */
         .right {
             position:relative; opacity:0;
             animation: fadeIn 1.2s 0.9s ease forwards;
@@ -242,12 +239,12 @@
         }
         .frame-badge-text { font-size:11px; font-weight:700; color:var(--ink); letter-spacing:0.05em; }
 
-        /* ── footer ── */
         footer {
             display:flex; justify-content:space-between; align-items:flex-end;
             opacity:0; animation: up 0.9s 1.4s ease forwards; padding-top:40px;
         }
 
+        .email-block { flex: 1; max-width: 400px; }
         .email-label {
             font-size:11px; font-weight:700; letter-spacing:0.15em;
             text-transform:uppercase; color:var(--muted); margin-bottom:12px; display:block;
@@ -259,13 +256,15 @@
         .email-row:focus-within { border-color:var(--ember); box-shadow:0 0 0 4px rgba(232,86,10,0.1); }
         .email-input {
             background:transparent; border:none; outline:none; font-family:inherit;
-            font-size:14px; padding:12px 20px; width:260px; color:var(--ink);
+            font-size:14px; padding:12px 20px; width:100%; color:var(--ink);
         }
         .email-btn {
             background:var(--ember); border:none; font-weight:700; font-size:11px;
             text-transform:uppercase; color:#fff; padding:0 24px; cursor:pointer; transition:0.2s;
+            white-space: nowrap;
         }
         .email-btn:hover { background:var(--ink); }
+        .email-btn:disabled { background: var(--muted); cursor: not-allowed; }
 
         .success-note {
             font-size:13px; font-weight:600; color:var(--ember);
@@ -277,12 +276,10 @@
         .footer-by strong { color:var(--ink2); }
         .footer-copy { font-size:11px; color:rgba(22,18,13,0.2); margin-top:4px; display:block;}
 
-        /* ── anims ── */
         @keyframes up { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
         @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
         @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
 
-        /* ── responsive ── */
         @media (max-width: 992px) {
             .center { grid-template-columns: 1fr; gap:50px; text-align:center; }
             .left { align-items:center; }
@@ -290,6 +287,7 @@
             .right { display:flex; justify-content:center; }
             footer { flex-direction:column; align-items:center; gap:40px; text-align:center; }
             .footer-right { text-align:center; }
+            .email-block { width: 100%; }
         }
     </style>
 </head>
@@ -317,9 +315,9 @@
             <div class="eyebrow"><span class="eyebrow-line"></span>Flagship Ecosystem</div>
             <div class="product-name">Think <span class="t-stroke">a</span></div>
             <p class="product-tagline">— where research thinks forward —</p>
-            
+
             <div class="coming-tag">
-                <span class="coming-dot"></span> Launching Q2 2026
+                <span class="coming-dot"></span> Launching Soon
             </div>
 
             <p class="desc">
@@ -327,9 +325,9 @@
             </p>
 
             <div class="pillars">
-                <a class="pillar" href="#rd">R&D Projects</a>
-                <a class="pillar" href="#researchers">Expert Network</a>
-                <a class="pillar" href="#industry">Industry Hub</a>
+                <a class="pillar" href="rd.html">R&D Projects</a>
+                <a class="pillar" href="researchers.html">Expert Network</a>
+                <a class="pillar" href="industry.html">Industry Hub</a>
             </div>
         </div>
 
@@ -349,29 +347,14 @@
     </div>
 
     <footer>
-<form 
-  action="https://formsubmit.co/ajax/muffeia.klein@gmail.com" 
-  method="POST" 
-  class="email-row"
-  id="emailForm"
->
-    <input type="hidden" name="_autoresponse" value="Thank you for your interest in Thinka! We've added you to our early access list. You'll be the first to know when we bridge the gap between research and industry. — The ResearchCamp Team">
-
-    <input type="hidden" name="_subject" value="New Thinka Early Access Signup!">
-
-    <input type="hidden" name="_captcha" value="false">
-
-    <input type="text" name="_honey" style="display:none">
-
-    <input 
-        type="email" 
-        name="email" 
-        class="email-input" 
-        placeholder="Enter your email..." 
-        required
-    >
-    <button type="submit" class="email-btn">Notify Me</button>
-</form>
+        <div class="email-block">
+            <span class="email-label">Join the early access list</span>
+            <form id="emailForm" class="email-row">
+                <input type="email" id="clientEmail" name="email" class="email-input" placeholder="Enter your email..." required>
+                <button type="submit" class="email-btn">Notify Me</button>
+            </form>
+            <div class="success-note" id="successNote">✦ You've been added. Welcome to the ecosystem.</div>
+        </div>
 
         <div class="footer-right">
             <span class="footer-by">A product by <strong>ResearchCamp</strong></span>
@@ -381,7 +364,7 @@
 </div>
 
 <script>
-/** 1. BACKGROUND CANVAS (RETINA SHARP) **/
+/** 1. BACKGROUND CANVAS **/
 (function() {
     const cv = document.getElementById('canvas');
     const cx = cv.getContext('2d');
@@ -421,12 +404,12 @@
     resize(); frame();
 })();
 
-/** 2. THINKA BRAIN CANVAS (RETINA SHARP) **/
+/** 2. BRAIN CANVAS **/
 (function() {
     const cv = document.getElementById('brainCanvas');
     const cx = cv.getContext('2d');
     let W, H, nodes = [], t = 0, pulseTimer = 0;
-    const pulses = [], payments = [];
+    const pulses = [];
 
     function resize() {
         const box = cv.parentElement.getBoundingClientRect();
@@ -465,10 +448,10 @@
     function spawnPulse() {
         const res = nodes.filter(n => n.type === 'res');
         const ind = nodes.filter(n => n.type === 'ind');
-        pulses.push({ 
-            from: res[Math.floor(Math.random()*res.length)], 
-            to: ind[Math.floor(Math.random()*ind.length)], 
-            prog: 0, speed: 0.007 
+        pulses.push({
+            from: res[Math.floor(Math.random()*res.length)],
+            to: ind[Math.floor(Math.random()*ind.length)],
+            prog: 0, speed: 0.007
         });
     }
 
@@ -485,7 +468,6 @@
         if(pulseTimer > 100) { spawnPulse(); pulseTimer = 0; }
         cx.clearRect(0, 0, W, H);
 
-        // Nodes Floating
         nodes.forEach(n => {
             if(n.type !== 'hub') {
                 n.x = n.ox + Math.sin(t * n.speed + n.phase) * 4;
@@ -494,7 +476,6 @@
         });
 
         const hub = nodes[0];
-        // Draw Edges
         nodes.forEach(n => {
             if(n === hub) return;
             cx.beginPath();
@@ -504,7 +485,6 @@
             cx.stroke();
         });
 
-        // Pulses
         for(let i=pulses.length-1; i>=0; i--) {
             const p = pulses[i]; p.prog += p.speed;
             let px, py;
@@ -521,14 +501,13 @@
             if(p.prog >= 1) pulses.splice(i, 1);
         }
 
-        // Render Nodes
         nodes.forEach(n => {
             cx.beginPath();
             cx.arc(n.x, n.y, n.r, 0, Math.PI*2);
             cx.fillStyle = n.type === 'hub' ? '#16120d' : (n.type === 'res' ? '#4a7fc1' : '#e8560a');
             cx.fill();
             if(n.type === 'hub') { cx.strokeStyle = '#e8560a'; cx.lineWidth=2; cx.stroke(); }
-            
+
             cx.fillStyle = 'rgba(22,18,13,0.5)';
             cx.font = '700 9px Manrope';
             cx.textAlign = 'center';
@@ -542,24 +521,40 @@
     resize(); frame();
 })();
 
-/** 3. FORM LOGIC **/
+/** 3. FORM LOGIC — EmailJS **/
+emailjs.init('32BkrrCx7us6XFL5y');
+
 const emailForm = document.getElementById('emailForm');
 const successNote = document.getElementById('successNote');
 
 emailForm.addEventListener('submit', function(e) {
     e.preventDefault();
     const btn = emailForm.querySelector('button');
-    btn.innerText = "...";
-    
-    fetch(emailForm.action, {
-        method: 'POST',
-        body: new FormData(emailForm),
-        headers: { 'Accept': 'application/json' }
-    }).then(res => {
-        if (res.ok) {
+    const originalText = btn.innerText;
+    const clientEmail = document.getElementById('clientEmail').value;
+
+    btn.innerText = "Processing...";
+    btn.disabled = true;
+
+    // Send auto-reply to client + notification to you
+    emailjs.send('service_93mnshd', 'template_ui5nxkn', {
+        email: clientEmail,        // matches {{email}} in your template
+        to_email: clientEmail,     // EmailJS "To Email" field
+        reply_to: clientEmail,
+    })
+    .then(function() {
+        emailForm.style.transition = "opacity 0.4s ease";
+        emailForm.style.opacity = "0";
+        setTimeout(() => {
             emailForm.style.display = 'none';
             successNote.style.display = 'block';
-        }
+        }, 400);
+    })
+    .catch(function(error) {
+        console.error('EmailJS error:', error);
+        alert("Something went wrong. Please try again later.");
+        btn.innerText = originalText;
+        btn.disabled = false;
     });
 });
 </script>

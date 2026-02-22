@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Industry Hub | Thinka · ResearchCamp</title>
+    <link rel="icon" href="assets/ResearchCamp-logo1.png" type="image/png">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        :root {
+            --cream:#f7f3ee; --paper:#f0ebe2; --ink:#16120d; --ink2:#3d3628;
+            --ember:#e8560a; --ember2:#f5812e; --muted:rgba(22,18,13,0.4); --faint:rgba(22,18,13,0.07);
+        }
+        html,body { width:100%; min-height:100%; background:var(--cream); color:var(--ink); font-family:'Manrope',sans-serif; overflow-x:hidden; }
+        body::after {
+            content:''; position:fixed; inset:0;
+            background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events:none; z-index:999;
+        }
+        #canvas { position:fixed; inset:0; z-index:0; }
+        .shell { position:relative; z-index:10; min-height:100vh; display:grid; grid-template-rows:auto 1fr auto; padding:40px 52px; max-width:1400px; margin:0 auto; }
+
+        header { display:flex; justify-content:space-between; align-items:center; opacity:0; animation:up 0.9s 0.2s ease forwards; }
+        .company-brand { display:flex; align-items:center; gap:14px; }
+        .rc-badge img { width:64px; height:64px; object-fit:contain; border-radius:6px; }
+        .rc-name { font-size:14px; font-weight:700; letter-spacing:0.04em; background:linear-gradient(135deg,var(--ink) 0%,var(--ember) 100%); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .rc-sub { font-size:10px; font-weight:400; color:var(--muted); letter-spacing:0.06em; display:block; }
+        .nav-back { font-size:11px; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:var(--ember); border:1.5px solid var(--ember); padding:6px 16px; border-radius:50px; text-decoration:none; transition:0.3s; }
+        .nav-back:hover { background:var(--ember); color:#fff; }
+
+        .main { display:flex; flex-direction:column; justify-content:center; padding:60px 0; }
+        .eyebrow { display:inline-flex; align-items:center; gap:12px; font-size:11px; font-weight:600; letter-spacing:0.22em; text-transform:uppercase; color:var(--ember); margin-bottom:24px; opacity:0; animation:up 0.8s 0.5s ease forwards; }
+        .eyebrow-line { width:28px; height:1.5px; background:var(--ember); }
+        .page-title { font-family:'Playfair Display',serif; font-size:clamp(48px,7vw,96px); font-weight:900; line-height:0.9; letter-spacing:-0.03em; color:var(--ink); opacity:0; animation:up 1s 0.65s ease forwards; margin-bottom:16px; }
+        .page-title .stroke { color:transparent; -webkit-text-stroke:2px var(--ink); font-style:italic; }
+        .page-sub { font-size:15px; font-weight:300; color:var(--muted); line-height:1.8; max-width:560px; margin-bottom:60px; opacity:0; animation:up 0.8s 0.8s ease forwards; }
+
+        .hub-grid { display:grid; grid-template-columns:1.4fr 1fr 1fr; grid-template-rows:auto auto; gap:20px; opacity:0; animation:up 0.9s 1s ease forwards; }
+        .hub-card { background:var(--paper); border:1px solid rgba(22,18,13,0.1); border-radius:16px; padding:28px; transition:transform 0.3s,box-shadow 0.3s,border-color 0.3s; position:relative; overflow:hidden; }
+        .hub-card:hover { transform:translateY(-5px); box-shadow:0 20px 50px rgba(22,18,13,0.1); border-color:rgba(232,86,10,0.2); }
+        .hub-card.featured { grid-row:1/3; background:var(--ink); display:flex; flex-direction:column; justify-content:space-between; }
+        .hub-card.featured:hover { border-color:rgba(232,86,10,0.4); }
+        .sector-icon { font-size:28px; margin-bottom:16px; }
+        .sector-label { font-size:10px; font-weight:700; letter-spacing:0.2em; text-transform:uppercase; color:var(--ember); margin-bottom:10px; }
+        .sector-title { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:var(--ink); margin-bottom:10px; line-height:1.2; }
+        .sector-desc { font-size:13px; color:var(--muted); line-height:1.7; }
+        .hub-card.featured .sector-label { color:var(--ember2); }
+        .hub-card.featured .sector-title { font-size:28px; color:var(--cream); margin-bottom:16px; }
+        .hub-card.featured .sector-desc { color:rgba(247,243,238,0.5); margin-bottom:32px; }
+        .stat-row { display:flex; gap:24px; margin-top:auto; }
+        .stat-num { font-family:'Playfair Display',serif; font-size:32px; font-weight:900; color:var(--ember); line-height:1; }
+        .stat-label { font-size:10px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:rgba(247,243,238,0.3); margin-top:4px; }
+
+        .process-strip { margin-top:24px; display:grid; grid-template-columns:repeat(4,1fr); gap:0; border:1px solid rgba(22,18,13,0.1); border-radius:12px; overflow:hidden; opacity:0; animation:up 0.9s 1.15s ease forwards; }
+        .process-step { padding:20px 22px; border-right:1px solid rgba(22,18,13,0.08); position:relative; }
+        .process-step:last-child { border-right:none; }
+        .step-num { font-size:10px; font-weight:700; letter-spacing:0.15em; color:var(--ember); margin-bottom:8px; }
+        .step-title { font-size:13px; font-weight:700; color:var(--ink); margin-bottom:4px; }
+        .step-desc { font-size:11px; color:var(--muted); line-height:1.6; }
+        .step-arrow { position:absolute; right:-10px; top:50%; transform:translateY(-50%); width:20px; height:20px; background:var(--cream); border:1px solid rgba(22,18,13,0.1); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:10px; color:var(--ember); z-index:2; }
+        .process-step:last-child .step-arrow { display:none; }
+
+        footer { display:flex; justify-content:space-between; align-items:center; padding-top:32px; opacity:0; animation:up 0.9s 1.3s ease forwards; }
+        .footer-nav { display:flex; gap:24px; }
+        .footer-nav a { font-size:11px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); text-decoration:none; transition:0.3s; }
+        .footer-nav a:hover,.footer-nav a.active { color:var(--ember); }
+        .footer-copy { font-size:11px; color:rgba(22,18,13,0.2); }
+        .coming-dot { width:6px; height:6px; border-radius:50%; background:var(--ember2); animation:blink 1.8s ease-in-out infinite; display:inline-block; }
+
+        @keyframes up { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        @media(max-width:992px){ .shell{padding:32px 24px} .hub-grid{grid-template-columns:1fr;grid-template-rows:auto} .hub-card.featured{grid-row:auto} .process-strip{grid-template-columns:1fr 1fr} .page-title{font-size:clamp(40px,10vw,72px)} }
+    </style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<div class="shell">
+    <header>
+        <div class="company-brand">
+            <div class="rc-badge"><img src="assets/ResearchCamp-logo1.png" alt="ResearchCamp"></div>
+            <div><span class="rc-name">ResearchCamp</span><span class="rc-sub">Digital Professional Services</span></div>
+        </div>
+        <a href="index.html" class="nav-back">← Back to Thinka</a>
+    </header>
+    <div class="main">
+        <div class="eyebrow"><span class="eyebrow-line"></span>Thinka Ecosystem</div>
+        <h1 class="page-title">Industry <span class="stroke">Hub</span></h1>
+        <p class="page-sub">The command center for industry leaders seeking research-powered solutions — from sourcing the right experts to managing full R&D engagements.</p>
+        <div class="hub-grid">
+            <div class="hub-card featured">
+                <div>
+                    <div class="sector-icon">🏭</div>
+                    <div class="sector-label">Why Thinka</div>
+                    <div class="sector-title">Research that moves at the speed of industry</div>
+                    <p class="sector-desc">Thinka eliminates the friction between commercial need and academic capability. We curate, vet, and connect — so your R&D investment delivers faster, with less risk.</p>
+                </div>
+                <div class="stat-row">
+                    <div class="stat"><div class="stat-num">3×</div><div class="stat-label">Faster Matching</div></div>
+                    <div class="stat"><div class="stat-num">40+</div><div class="stat-label">Sectors Covered</div></div>
+                    <div class="stat"><div class="stat-num">Soon</div><div class="stat-label">To Launch</div></div>
+                </div>
+            </div>
+            <div class="hub-card"><div class="sector-icon">💊</div><div class="sector-label">Pharma & Health</div><div class="sector-title">Life Sciences</div><p class="sector-desc">From drug discovery to digital health — connect with the researchers redefining medicine.</p></div>
+            <div class="hub-card"><div class="sector-icon">🌍</div><div class="sector-label">Sustainability</div><div class="sector-title">Clean Industries</div><p class="sector-desc">Net-zero transitions need net-new science. Access experts in carbon capture, green materials, and circular systems.</p></div>
+            <div class="hub-card"><div class="sector-icon">🏦</div><div class="sector-label">Finance & Risk</div><div class="sector-title">FinTech & Analytics</div><p class="sector-desc">Quantitative researchers and data scientists ready to tackle your most complex modelling challenges.</p></div>
+            <div class="hub-card"><div class="sector-icon">🚀</div><div class="sector-label">Deep Tech</div><div class="sector-title">Advanced Engineering</div><p class="sector-desc">Aerospace, robotics, quantum — deep tech needs deep expertise. We have it.</p></div>
+        </div>
+        <div class="process-strip">
+            <div class="process-step"><div class="step-num">STEP 01</div><div class="step-title">Define Your Need</div><p class="step-desc">Submit your R&D challenge through the Thinka portal.</p><div class="step-arrow">→</div></div>
+            <div class="process-step"><div class="step-num">STEP 02</div><div class="step-title">We Match</div><p class="step-desc">Our team curates the best-fit researchers from the expert network.</p><div class="step-arrow">→</div></div>
+            <div class="process-step"><div class="step-num">STEP 03</div><div class="step-title">Engage</div><p class="step-desc">Kick off a structured project with milestones and IP clarity.</p><div class="step-arrow">→</div></div>
+            <div class="process-step"><div class="step-num">STEP 04</div><div class="step-title">Deliver</div><p class="step-desc">Receive research outputs ready for commercial application.</p></div>
+        </div>
+    </div>
+    <footer>
+        <nav class="footer-nav">
+            <a href="rd.html">R&D Projects</a>
+            <a href="researchers.html">Expert Network</a>
+            <a href="industry.html" class="active">Industry Hub</a>
+        </nav>
+        <span class="footer-copy">© 2026 ResearchCamp</span>
+    </footer>
+</div>
+
+<script>
+/* ── 4D TESSERACT (HYPERCUBE) rotating through 4D space ── */
+(function () {
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, t = 0;
+
+    function resize() {
+        const dpr = window.devicePixelRatio || 1;
+        W = window.innerWidth; H = window.innerHeight;
+        canvas.width = W * dpr; canvas.height = H * dpr;
+        canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+        ctx.scale(dpr, dpr);
+    }
+
+    // 16 vertices of a 4D hypercube (tesseract), each ±1 in 4 dimensions
+    const verts4D = [];
+    for (let x = -1; x <= 1; x += 2)
+        for (let y = -1; y <= 1; y += 2)
+            for (let z = -1; z <= 1; z += 2)
+                for (let w = -1; w <= 1; w += 2)
+                    verts4D.push([x, y, z, w]);
+
+    // Edges: connect vertices that differ in exactly ONE dimension
+    const edges = [];
+    for (let i = 0; i < verts4D.length; i++) {
+        for (let j = i + 1; j < verts4D.length; j++) {
+            let diff = 0;
+            for (let k = 0; k < 4; k++) if (verts4D[i][k] !== verts4D[j][k]) diff++;
+            if (diff === 1) edges.push([i, j]);
+        }
+    }
+
+    // 4D rotation matrices applied sequentially (XY, XZ, XW, YZ, YW, ZW planes)
+    function rotate4D(v, t) {
+        let [x, y, z, w] = v;
+
+        // XY plane
+        const a1 = t * 0.31;
+        let nx = x * Math.cos(a1) - y * Math.sin(a1);
+        let ny = x * Math.sin(a1) + y * Math.cos(a1);
+        x = nx; y = ny;
+
+        // XZ plane
+        const a2 = t * 0.19;
+        nx = x * Math.cos(a2) - z * Math.sin(a2);
+        let nz = x * Math.sin(a2) + z * Math.cos(a2);
+        x = nx; z = nz;
+
+        // XW plane
+        const a3 = t * 0.27;
+        nx = x * Math.cos(a3) - w * Math.sin(a3);
+        let nw = x * Math.sin(a3) + w * Math.cos(a3);
+        x = nx; w = nw;
+
+        // YW plane
+        const a4 = t * 0.13;
+        ny = y * Math.cos(a4) - w * Math.sin(a4);
+        nw = y * Math.sin(a4) + w * Math.cos(a4);
+        y = ny; w = nw;
+
+        // ZW plane
+        const a5 = t * 0.22;
+        nz = z * Math.cos(a5) - w * Math.sin(a5);
+        nw = z * Math.sin(a5) + w * Math.cos(a5);
+        z = nz; w = nw;
+
+        return [x, y, z, w];
+    }
+
+    // Project 4D → 3D (perspective on W axis)
+    function project4to3(v) {
+        const [x, y, z, w] = v;
+        const d = 2.5; // viewer distance in 4D
+        const wDepth = 1 / (d - w);
+        return [x * wDepth, y * wDepth, z * wDepth, wDepth];
+    }
+
+    // Project 3D → 2D (perspective on Z axis)
+    function project3to2(v3, scale) {
+        const [x, y, z] = v3;
+        const d = 3;
+        const zDepth = 1 / (d - z);
+        return {
+            sx: W / 2 + x * zDepth * scale,
+            sy: H / 2 + y * zDepth * scale,
+            depth: zDepth,
+        };
+    }
+
+    // Particle trails
+    const trails = Array.from({ length: 30 }, () => ({
+        progress: Math.random(),
+        edgeIdx: Math.floor(Math.random() * edges.length),
+        speed: 0.003 + Math.random() * 0.006,
+        size: 1.5 + Math.random() * 2,
+    }));
+
+    function frame() {
+        t += 0.005;
+        ctx.clearRect(0, 0, W, H);
+
+        const scale = Math.min(W, H) * 0.28;
+
+        // Rotate and project all vertices
+        const projected = verts4D.map(v => {
+            const r4 = rotate4D(v, t);
+            const [x3, y3, z3, w3] = project4to3(r4);
+            const p2 = project3to2([x3, y3, z3], scale);
+            return { ...p2, wDepth: w3 };
+        });
+
+        // Sort edges by average depth (painter's algorithm)
+        const sortedEdges = edges.map(([i, j]) => ({
+            i, j,
+            avgDepth: (projected[i].depth + projected[j].depth) / 2,
+            avgW: (projected[i].wDepth + projected[j].wDepth) / 2,
+        })).sort((a, b) => a.avgDepth - b.avgDepth);
+
+        // Draw edges
+        sortedEdges.forEach(({ i, j, avgDepth, avgW }) => {
+            const a = projected[i], b = projected[j];
+            const alpha = Math.min(avgDepth * 1.5, 0.6);
+            // Color by W dimension: inner cube=ember, outer cube=ink
+            const isInner = avgW > 0.18;
+            ctx.beginPath();
+            ctx.moveTo(a.sx, a.sy);
+            ctx.lineTo(b.sx, b.sy);
+            ctx.strokeStyle = isInner
+                ? `rgba(232,86,10,${alpha})`
+                : `rgba(61,54,40,${alpha * 0.6})`;
+            ctx.lineWidth = avgDepth * 2.5;
+            ctx.stroke();
+        });
+
+        // Draw vertices
+        projected.forEach((p, i) => {
+            const alpha = Math.min(p.depth * 1.8, 0.95);
+            const r = p.depth * 6;
+            const isInner = verts4D[i][3] > 0; // w=+1 is inner
+
+            if (isInner) {
+                const grad = ctx.createRadialGradient(p.sx, p.sy, 0, p.sx, p.sy, r * 2.5);
+                grad.addColorStop(0, `rgba(232,86,10,${alpha})`);
+                grad.addColorStop(1, 'rgba(232,86,10,0)');
+                ctx.beginPath();
+                ctx.arc(p.sx, p.sy, r * 2.5, 0, Math.PI * 2);
+                ctx.fillStyle = grad;
+                ctx.fill();
+            }
+
+            ctx.beginPath();
+            ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
+            ctx.fillStyle = isInner
+                ? `rgba(232,86,10,${alpha})`
+                : `rgba(61,54,40,${alpha * 0.7})`;
+            ctx.fill();
+        });
+
+        // Draw particles traveling along edges
+        trails.forEach(trail => {
+            trail.progress += trail.speed;
+            if (trail.progress > 1) {
+                trail.progress = 0;
+                trail.edgeIdx = Math.floor(Math.random() * edges.length);
+            }
+            const [i, j] = edges[trail.edgeIdx];
+            const a = projected[i], b = projected[j];
+            const px = a.sx + (b.sx - a.sx) * trail.progress;
+            const py = a.sy + (b.sy - a.sy) * trail.progress;
+            const depth = a.depth + (b.depth - a.depth) * trail.progress;
+            const alpha = Math.min(depth * 2, 0.9);
+            ctx.beginPath();
+            ctx.arc(px, py, trail.size * depth * 1.5, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(245,129,46,${alpha})`;
+            ctx.fill();
+        });
+
+        requestAnimationFrame(frame);
+    }
+
+    window.addEventListener('resize', resize);
+    resize(); frame();
+})();
+</script>
+</body>
+</html>
