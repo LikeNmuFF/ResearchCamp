@@ -1,0 +1,1359 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How It Works | Thinka · ResearchCamp</title>
+<link rel="icon" href="../assets/ResearchCamp-logo.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream:#f7f3ee; --paper:#f0ebe2; --ink:#16120d; --ink2:#3d3628;
+  --ember:#e8560a; --ember2:#f5812e; --ember3:#ffc87a;
+  --blue:#4a7fc1; --gold:#c9a84c;
+  --muted:rgba(22,18,13,0.45); --faint:rgba(22,18,13,0.06);
+  --border:rgba(22,18,13,0.1);
+  --nav-h:72px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;font-size:16px;}
+body{
+  background:var(--cream);color:var(--ink);
+  font-family:'Manrope',sans-serif;
+  overflow-x:hidden;cursor:default;
+}
+
+/* ── NOISE ── */
+body::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9000;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.028'/%3E%3C/svg%3E");
+}
+
+/* ── CANVAS ── */
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+
+/* ══════════════════════════════
+   NAV
+══════════════════════════════ */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:500;
+  height:var(--nav-h);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 52px;
+  background:rgba(247,243,238,0);
+  backdrop-filter:blur(0px);
+  border-bottom:1px solid rgba(22,18,13,0);
+  transition:background .4s,backdrop-filter .4s,border-color .4s;
+}
+.nav.scrolled{
+  background:rgba(247,243,238,0.88);
+  backdrop-filter:blur(20px);
+  border-color:var(--border);
+}
+.nav-brand{display:flex;align-items:center;gap:12px;text-decoration:none;}
+.nav-brand img{width:38px;height:38px;border-radius:8px;object-fit:contain;}
+.nav-brand-text{display:flex;flex-direction:column;}
+.nav-brand-name{
+  font-size:13px;font-weight:800;letter-spacing:.03em;
+  background:linear-gradient(135deg,var(--ink),var(--ember));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  line-height:1;
+}
+.nav-brand-sub{font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-top:2px;}
+
+.nav-links{display:flex;align-items:center;gap:28px;}
+.nav-links a{
+  font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);text-decoration:none;transition:color .25s;
+  position:relative;
+}
+.nav-links a::after{
+  content:'';position:absolute;bottom:-4px;left:0;width:0;height:1.5px;
+  background:var(--ember);transition:width .3s;
+}
+.nav-links a:hover{color:var(--ember);}
+.nav-links a:hover::after{width:100%;}
+.nav-cta{
+  font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;
+  color:#fff!important;background:var(--ember);padding:9px 22px;
+  border-radius:50px;transition:background .25s,transform .2s,box-shadow .2s!important;
+  box-shadow:0 4px 16px rgba(232,86,10,0.25);
+}
+.nav-cta::after{display:none!important;}
+.nav-cta:hover{background:var(--ink)!important;transform:translateY(-1px);box-shadow:0 8px 24px rgba(22,18,13,0.2)!important;}
+
+/* hamburger */
+.burger{
+  display:none;flex-direction:column;gap:5px;cursor:pointer;
+  width:32px;padding:4px 0;
+  background:none;border:none;
+}
+.burger span{
+  display:block;height:2px;background:var(--ink);
+  border-radius:2px;transition:transform .3s,opacity .3s,width .3s;
+}
+.burger span:nth-child(2){width:70%;}
+.burger.open span:nth-child(1){transform:translateY(7px) rotate(45deg);}
+.burger.open span:nth-child(2){opacity:0;width:0;}
+.burger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg);}
+
+.mobile-menu{
+  position:fixed;top:var(--nav-h);left:0;right:0;z-index:499;
+  background:rgba(247,243,238,0.97);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:24px 52px;
+  display:flex;flex-direction:column;gap:20px;
+  transform:translateY(-110%);
+  transition:transform .4s cubic-bezier(.16,1,.3,1);
+}
+.mobile-menu.open{transform:translateY(0);}
+.mobile-menu a{
+  font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);text-decoration:none;padding:8px 0;
+  border-bottom:1px solid var(--border);transition:color .2s;
+}
+.mobile-menu a:hover{color:var(--ember);}
+.mobile-menu .mob-cta{
+  color:#fff!important;background:var(--ember);padding:12px 24px;
+  border-radius:50px;text-align:center;border:none;margin-top:4px;
+}
+
+/* ══════════════════════════════
+   PROGRESS BAR
+══════════════════════════════ */
+.progress-bar{
+  position:fixed;top:var(--nav-h);left:0;z-index:501;
+  height:2.5px;background:linear-gradient(90deg,var(--ember),var(--ember2),var(--ember3));
+  width:0%;transition:width .1s linear;
+  box-shadow:0 0 8px rgba(232,86,10,0.5);
+}
+
+/* ══════════════════════════════
+   SCROLL REVEAL SYSTEM
+══════════════════════════════ */
+.sr{opacity:0;transform:translateY(40px);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1);}
+.sr.sr-left{transform:translateX(-50px);}
+.sr.sr-right{transform:translateX(50px);}
+.sr.sr-scale{transform:scale(0.9);}
+.sr.in{opacity:1!important;transform:none!important;}
+.sr-d1{transition-delay:.1s!important;}
+.sr-d2{transition-delay:.2s!important;}
+.sr-d3{transition-delay:.3s!important;}
+.sr-d4{transition-delay:.4s!important;}
+.sr-d5{transition-delay:.5s!important;}
+.sr-d6{transition-delay:.6s!important;}
+
+/* ══════════════════════════════
+   PAGE WRAPPER
+══════════════════════════════ */
+.page{position:relative;z-index:10;padding-top:var(--nav-h);}
+
+/* ══════════════════════════════
+   HERO
+══════════════════════════════ */
+.hero{
+  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
+  padding:80px 52px 60px;max-width:1400px;margin:0 auto;
+  position:relative;
+}
+/* 3D / 4D-like depth for hero */
+.hero{perspective:1400px;--tilt-strength:18px}
+.hero-title-line span{transform-style:preserve-3d;will-change:transform}
+.floating-layer{position:absolute;pointer-events:none;transform-style:preserve-3d}
+.floating-layer.lt{left:8%;top:8%;width:260px;height:160px;border-radius:12px;background:linear-gradient(135deg,rgba(74,127,193,.06),transparent);filter:blur(12px);opacity:.9}
+.floating-layer.rt{right:6%;top:18%;width:320px;height:200px;border-radius:18px;background:linear-gradient(135deg,rgba(232,86,10,.06),transparent);filter:blur(16px);opacity:.95}
+
+@keyframes floatyX{
+  0%{transform:translate3d(0,0,0)}
+  50%{transform:translate3d(8px,-6px,6px)}
+  100%{transform:translate3d(0,0,0)}
+}
+.floating-layer{animation:floatyX 8s ease-in-out infinite}
+
+.hero-pill{
+  display:inline-flex;align-items:center;gap:10px;
+  background:var(--faint);border:1px solid var(--border);
+  border-radius:50px;padding:6px 16px 6px 10px;
+  margin-bottom:36px;width:fit-content;
+  opacity:0;animation:fadeUp .8s .2s ease forwards;
+}
+.hero-pill-dot{
+  width:8px;height:8px;border-radius:50%;background:var(--ember);
+  animation:pulse 2s ease-in-out infinite;
+}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(232,86,10,0.4)}50%{box-shadow:0 0 0 6px rgba(232,86,10,0)}}
+.hero-pill-text{font-size:11px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ember);}
+
+.hero-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(60px,10vw,140px);
+  font-weight:900;line-height:.86;letter-spacing:-.04em;color:var(--ink);
+  margin-bottom:32px;overflow:hidden;
+}
+.hero-title-line{
+  display:block;overflow:hidden;
+}
+.hero-title-line span{
+  display:inline-block;
+  opacity:0;transform:translateY(100%);
+  animation:slideUp .9s ease forwards;
+}
+.hero-title-line:nth-child(1) span{animation-delay:.35s;}
+.hero-title-line:nth-child(2) span{animation-delay:.5s;}
+.hero-title-line:nth-child(3) span{animation-delay:.65s;}
+.hero-title .stroke{color:transparent;-webkit-text-stroke:3px var(--ink);font-style:italic;}
+.hero-title .fire{
+  background:linear-gradient(135deg,var(--ember),var(--ember2),var(--ember3));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+
+@keyframes slideUp{to{opacity:1;transform:translateY(0);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+.hero-body{
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;
+  margin-top:24px;
+}
+.hero-sub{
+  font-size:clamp(14px,1.4vw,17px);font-weight:300;color:var(--muted);
+  line-height:1.85;
+  opacity:0;animation:fadeUp .9s .85s ease forwards;
+}
+.hero-sub strong{color:var(--ink);font-weight:700;}
+
+.hero-stats{
+  display:grid;grid-template-columns:1fr 1fr;gap:16px;
+  opacity:0;animation:fadeUp .9s 1s ease forwards;
+}
+.hero-stat{
+  background:var(--paper);border:1px solid var(--border);
+  border-radius:16px;padding:24px;
+  transition:transform .3s,box-shadow .3s,border-color .3s;
+}
+.hero-stat:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(22,18,13,.09);border-color:rgba(232,86,10,.2);}
+.hero-stat-num{
+  font-family:'Playfair Display',serif;font-size:36px;font-weight:900;
+  background:linear-gradient(135deg,var(--ember),var(--ember2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  line-height:1;margin-bottom:6px;
+}
+.hero-stat-label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.08em;line-height:1.4;}
+
+.hero-scroll{
+  position:absolute;bottom:48px;left:52px;
+  display:flex;align-items:center;gap:14px;
+  opacity:0;animation:fadeUp .8s 1.2s ease forwards;
+}
+.scroll-label{font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+.scroll-track{
+  width:1px;height:40px;background:var(--border);position:relative;overflow:hidden;
+}
+.scroll-dot{
+  position:absolute;top:-100%;left:0;width:100%;
+  background:linear-gradient(var(--ember),var(--ember2));
+  animation:scrollDot 1.8s ease-in-out infinite;
+}
+@keyframes scrollDot{0%{top:-100%;height:30%;}50%{top:50%;height:30%;}100%{top:200%;height:30%;}}
+
+/* ══════════════════════════════
+   SECTION SHELLS
+══════════════════════════════ */
+.section{padding:120px 52px;max-width:1400px;margin:0 auto;}
+.section-full{padding:120px 52px;} /* for dark full-bleed sections */
+
+.s-tag{
+  display:inline-flex;align-items:center;gap:10px;
+  font-size:10px;font-weight:700;letter-spacing:.25em;text-transform:uppercase;
+  color:var(--ember);margin-bottom:18px;
+}
+.s-tag-line{width:20px;height:1.5px;background:var(--ember);}
+.s-tag.blue{color:var(--blue);}
+.s-tag.blue .s-tag-line{background:var(--blue);}
+
+.s-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(38px,5vw,72px);
+  font-weight:900;line-height:.9;letter-spacing:-.025em;color:var(--ink);
+  margin-bottom:20px;
+}
+.s-title em{color:transparent;-webkit-text-stroke:2px var(--ink);font-style:italic;}
+.s-desc{font-size:15px;font-weight:300;color:var(--muted);line-height:1.85;max-width:560px;}
+
+hr.div{border:none;height:1px;background:var(--border);}
+
+/* ══════════════════════════════
+   SECTION 1 — PROBLEM / SOLUTION
+══════════════════════════════ */
+.ps-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:60px;}
+
+.ps-card{border-radius:24px;padding:48px;position:relative;overflow:hidden;}
+.ps-card.problem{background:var(--ink);}
+.ps-card.solution{background:linear-gradient(135deg,var(--ember) 0%,var(--ember2) 100%);}
+
+.ps-card::before{
+  content:'';position:absolute;inset:0;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='1' fill='white' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events:none;
+}
+.ps-label{font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:20px;}
+.ps-title{font-family:'Playfair Display',serif;font-size:clamp(22px,2.5vw,30px);font-weight:700;color:#fff;line-height:1.2;margin-bottom:16px;}
+.ps-desc{font-size:14px;color:rgba(255,255,255,.65);line-height:1.8;margin-bottom:32px;}
+.ps-items{display:flex;flex-direction:column;gap:14px;}
+.ps-item{display:flex;align-items:flex-start;gap:12px;font-size:13px;color:rgba(255,255,255,.75);line-height:1.6;}
+.ps-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;margin-top:6px;}
+.problem .ps-dot{background:var(--ember2);}
+.solution .ps-dot{background:rgba(255,255,255,.8);}
+.ps-check{flex-shrink:0;color:#fff;font-size:16px;margin-top:1px;}
+
+/* animated counter badge */
+.ps-badge{
+  position:absolute;bottom:32px;right:32px;
+  background:rgba(255,255,255,.12);backdrop-filter:blur(10px);
+  border:1px solid rgba(255,255,255,.15);border-radius:12px;
+  padding:16px 20px;text-align:center;
+}
+.ps-badge-num{font-family:'Playfair Display',serif;font-size:32px;font-weight:900;color:#fff;line-height:1;}
+.ps-badge-label{font-size:10px;color:rgba(255,255,255,.5);letter-spacing:.1em;text-transform:uppercase;margin-top:4px;}
+
+/* ══════════════════════════════
+   SECTION 2 — BUSINESS MODEL
+══════════════════════════════ */
+.biz-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--border);border-radius:20px;overflow:hidden;margin-top:60px;}
+.biz-step{
+  padding:40px 32px;border-right:1px solid var(--border);
+  position:relative;overflow:hidden;
+  transition:background .3s;
+}
+.biz-step:last-child{border-right:none;}
+.biz-step::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,var(--ember-pale,rgba(232,86,10,0.05)) 0%,transparent 60%);
+  opacity:0;transition:opacity .4s;
+}
+.biz-step:hover::before{opacity:1;}
+.biz-step:hover{background:rgba(232,86,10,.02);}
+
+.biz-n{
+  font-family:'Playfair Display',serif;font-size:80px;font-weight:900;
+  color:rgba(232,86,10,.07);line-height:1;
+  position:absolute;top:16px;right:20px;
+  -webkit-text-stroke:1px rgba(232,86,10,.12);
+  user-select:none;
+}
+.biz-icon{font-size:36px;margin-bottom:20px;display:block;}
+.biz-title{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:12px;}
+.biz-desc{font-size:13px;color:var(--muted);line-height:1.8;margin-bottom:24px;}
+.biz-tag{
+  display:inline-block;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ember);padding:5px 14px;border-radius:50px;
+  background:rgba(232,86,10,.08);border:1px solid rgba(232,86,10,.15);
+}
+
+/* 3 players */
+.players{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:48px;}
+.player{
+  background:var(--paper);border:1px solid var(--border);border-radius:20px;
+  padding:32px;position:relative;overflow:hidden;
+  transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s,border-color .35s;
+}
+.player::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--ember),var(--ember2));
+  transform:scaleX(0);transform-origin:left;transition:transform .4s;
+}
+.player:hover{transform:translateY(-8px);box-shadow:0 28px 60px rgba(22,18,13,.1);border-color:rgba(232,86,10,.2);}
+.player:hover::after{transform:scaleX(1);}
+.player-icon{
+  width:56px;height:56px;border-radius:14px;
+  background:rgba(232,86,10,.08);border:1px solid rgba(232,86,10,.12);
+  display:flex;align-items:center;justify-content:center;
+  font-size:26px;margin-bottom:20px;
+  transition:transform .3s;
+}
+.player:hover .player-icon{transform:scale(1.1) rotate(-5deg);}
+.player-name{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--ink);margin-bottom:4px;}
+.player-role{font-size:11px;color:var(--ember);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;}
+.player-desc{font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:24px;}
+.player-divider{height:1px;background:var(--border);margin-bottom:20px;}
+.player-gets-label{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.player-gets-list{display:flex;flex-direction:column;gap:8px;}
+.player-gets-item{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink2);}
+.gets-dot{width:5px;height:5px;border-radius:50%;background:var(--ember);flex-shrink:0;}
+
+/* ══════════════════════════════
+   SECTION 3 — MONEY (DARK)
+══════════════════════════════ */
+.money-wrap{
+  background:var(--ink);border-radius:32px;
+  padding:80px 60px;margin:0 0;
+  position:relative;overflow:hidden;
+}
+.money-wrap::before{
+  content:'';position:absolute;top:-200px;right:-200px;
+  width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle,rgba(232,86,10,.08) 0%,transparent 70%);
+  pointer-events:none;
+}
+.money-wrap .s-title{color:var(--cream);}
+.money-wrap .s-title em{-webkit-text-stroke-color:var(--cream);}
+.money-wrap .s-desc{color:rgba(247,243,238,.5);}
+.money-wrap .s-tag{color:var(--ember2);}
+.money-wrap .s-tag-line{background:var(--ember2);}
+
+.rev-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px;margin-top:60px;}
+.rev-card{
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:20px;padding:36px;
+  transition:background .3s,border-color .3s,transform .35s;
+  position:relative;overflow:hidden;
+}
+.rev-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--ember),var(--ember2));
+  transform:scaleX(0);transform-origin:left;
+  transition:transform .4s;
+}
+.rev-card:hover{background:rgba(255,255,255,.07);border-color:rgba(232,86,10,.3);transform:translateY(-4px);}
+.rev-card:hover::before{transform:scaleX(1);}
+.rev-head{display:flex;align-items:center;gap:16px;margin-bottom:20px;}
+.rev-ico{
+  width:52px;height:52px;border-radius:12px;
+  background:rgba(232,86,10,.12);
+  display:flex;align-items:center;justify-content:center;font-size:24px;
+}
+.rev-name{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;color:var(--cream);margin-bottom:2px;}
+.rev-type{font-size:10px;color:var(--ember2);font-weight:700;letter-spacing:.12em;text-transform:uppercase;}
+.rev-desc{font-size:13px;color:rgba(247,243,238,.5);line-height:1.8;margin-bottom:28px;}
+.rev-amt{
+  font-family:'Playfair Display',serif;font-size:32px;font-weight:900;
+  background:linear-gradient(135deg,var(--ember),var(--ember2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  line-height:1;margin-bottom:4px;
+}
+.rev-amt-label{font-size:10px;color:rgba(247,243,238,.3);letter-spacing:.1em;text-transform:uppercase;}
+
+/* animated money flow */
+.flow-title{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(247,243,238,.25);margin:60px 0 24px;}
+.flow-bar{
+  display:flex;align-items:stretch;
+  background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);border-radius:16px;overflow:hidden;
+}
+.flow-node{
+  flex:1;padding:28px 20px;text-align:center;
+  border-right:1px solid rgba(255,255,255,.07);
+  position:relative;
+}
+.flow-node:last-child{border-right:none;}
+.flow-node-emoji{font-size:28px;margin-bottom:10px;display:block;}
+.flow-node-name{font-size:12px;font-weight:700;color:var(--cream);margin-bottom:4px;}
+.flow-node-amt{font-size:13px;color:var(--ember2);font-weight:700;}
+
+/* animated particle on the flow */
+.flow-particle{
+  position:absolute;top:50%;width:8px;height:8px;border-radius:50%;
+  background:var(--ember);box-shadow:0 0 8px rgba(232,86,10,.6);
+  transform:translateY(-50%);
+  animation:flowMove 3s ease-in-out infinite;
+}
+@keyframes flowMove{
+  0%{left:-5px;opacity:0;}
+  10%{opacity:1;}
+  90%{opacity:1;}
+  100%{left:calc(100% + 5px);opacity:0;}
+}
+
+/* ══════════════════════════════
+   SECTION 4 — PHILIPPINES
+══════════════════════════════ */
+.ph-banner{
+  border-radius:24px;padding:64px;position:relative;overflow:hidden;
+  background:linear-gradient(135deg,#0038a8 0%,#1a52cc 35%,#ce1126 70%,#fcd116 100%);
+  margin-bottom:40px;
+}
+.ph-banner::after{
+  content:'🇵🇭';position:absolute;right:48px;top:50%;transform:translateY(-50%);
+  font-size:140px;opacity:.12;user-select:none;pointer-events:none;
+}
+.ph-tag{font-size:10px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:18px;}
+.ph-title{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(36px,5vw,68px);
+  font-weight:900;color:#fff;line-height:.92;
+  letter-spacing:-.02em;margin-bottom:20px;
+}
+.ph-sub{font-size:15px;color:rgba(255,255,255,.7);line-height:1.8;max-width:540px;}
+
+.ph-why{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:40px;}
+.ph-card{
+  background:var(--paper);border:1px solid var(--border);border-radius:20px;
+  padding:32px;position:relative;overflow:hidden;
+  transition:transform .35s,box-shadow .35s;
+}
+.ph-card:hover{transform:translateY(-6px);box-shadow:0 24px 56px rgba(22,18,13,.1);}
+.ph-card-icon{font-size:32px;margin-bottom:18px;display:block;}
+.ph-card-title{font-family:'Playfair Display',serif;font-size:21px;font-weight:700;color:var(--ink);margin-bottom:10px;}
+.ph-card-desc{font-size:13px;color:var(--muted);line-height:1.75;margin-bottom:20px;}
+.ph-card-stat{
+  font-family:'Playfair Display',serif;font-size:36px;font-weight:900;
+  background:linear-gradient(135deg,var(--ember),var(--ember2));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  line-height:1;
+}
+.ph-card-stat-label{font-size:11px;color:var(--muted);margin-top:4px;}
+
+.sectors-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:48px;}
+.sector{
+  background:var(--paper);border:1px solid var(--border);border-radius:14px;
+  padding:20px 16px;text-align:center;
+  transition:background .3s,border-color .3s,transform .3s;
+  cursor:default;
+}
+.sector:hover{background:var(--ember);border-color:var(--ember);transform:translateY(-4px);}
+.sector:hover .sector-name{color:#fff;}
+.sector:hover .sector-emoji-wrap{background:rgba(255,255,255,.2);}
+.sector-emoji-wrap{
+  width:44px;height:44px;border-radius:10px;
+  background:var(--faint);display:flex;align-items:center;justify-content:center;
+  font-size:22px;margin:0 auto 10px;
+  transition:background .3s;
+}
+.sector-name{font-size:11px;font-weight:700;color:var(--ink);letter-spacing:.03em;transition:color .3s;}
+
+/* roadmap tabs */
+.roadmap{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--border);border-radius:20px;overflow:hidden;}
+.phase{padding:32px 24px;border-right:1px solid var(--border);transition:background .3s;}
+.phase:last-child{border-right:none;}
+.phase.now{background:var(--ink);}
+.phase-tag{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ember);margin-bottom:10px;}
+.phase.now .phase-tag{color:var(--ember2);}
+.phase-period{font-family:'Playfair Display',serif;font-size:19px;font-weight:700;color:var(--ink);margin-bottom:16px;}
+.phase.now .phase-period{color:var(--cream);}
+.phase-items{display:flex;flex-direction:column;gap:10px;}
+.phase-item{font-size:12px;color:var(--muted);display:flex;align-items:flex-start;gap:8px;line-height:1.5;}
+.phase.now .phase-item{color:rgba(247,243,238,.5);}
+.phase-bullet{color:var(--ember);flex-shrink:0;font-size:14px;line-height:1.3;}
+
+/* ══════════════════════════════
+   SECTION 5 — E2E FLOW
+══════════════════════════════ */
+.e2e{display:flex;flex-direction:column;gap:0;margin-top:60px;}
+.e2e-step{
+  display:grid;grid-template-columns:80px 1fr 1fr;gap:40px;
+  padding:48px 0;border-bottom:1px solid var(--border);
+  align-items:start;position:relative;
+}
+.e2e-step:last-child{border-bottom:none;}
+
+/* animated progress line */
+.e2e-step::before{
+  content:'';
+  position:absolute;left:36px;top:0;bottom:0;width:2px;
+  background:var(--border);
+}
+.e2e-step:first-child::before{top:48px;}
+.e2e-step:last-child::before{bottom:calc(100% - 80px);}
+
+.e2e-num-wrap{
+  display:flex;flex-direction:column;align-items:center;gap:0;
+  position:relative;z-index:2;padding-top:4px;
+}
+.e2e-circle{
+  width:56px;height:56px;border-radius:50%;
+  background:var(--ink);border:2px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Playfair Display',serif;font-size:22px;font-weight:900;color:var(--cream);
+  transition:background .3s,border-color .3s,transform .3s,box-shadow .3s;
+}
+.e2e-step.active .e2e-circle{
+  background:var(--ember);border-color:var(--ember);
+  box-shadow:0 0 0 6px rgba(232,86,10,.15);
+  transform:scale(1.1);
+}
+
+.e2e-left h3{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--ink);margin-bottom:12px;line-height:1.2;}
+.e2e-left p{font-size:14px;color:var(--muted);line-height:1.85;}
+
+.e2e-right{
+  background:var(--paper);border:1px solid var(--border);border-radius:14px;
+  padding:24px 28px;transition:border-color .3s;
+}
+.e2e-step.active .e2e-right{border-color:rgba(232,86,10,.2);background:rgba(232,86,10,.02);}
+.e2e-right-label{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--ember);margin-bottom:14px;}
+.e2e-right-items{display:flex;flex-direction:column;gap:10px;}
+.e2e-right-item{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink2);}
+.e2e-dot{width:5px;height:5px;border-radius:50%;background:var(--ember);flex-shrink:0;}
+
+/* ══════════════════════════════
+   FOOTER
+══════════════════════════════ */
+.footer{
+  background:var(--ink);padding:64px 52px;
+  display:flex;justify-content:space-between;align-items:center;
+  flex-wrap:wrap;gap:32px;
+}
+.footer-brand{display:flex;align-items:center;gap:14px;}
+.footer-brand img{width:44px;height:44px;border-radius:8px;object-fit:contain;}
+.footer-brand-name{font-size:14px;font-weight:700;color:var(--cream);}
+.footer-brand-sub{font-size:10px;color:rgba(247,243,238,.3);letter-spacing:.08em;margin-top:3px;}
+.footer-links{display:flex;gap:24px;flex-wrap:wrap;}
+.footer-links a{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(247,243,238,.3);text-decoration:none;transition:color .25s;}
+.footer-links a:hover{color:var(--ember);}
+.footer-copy{font-size:11px;color:rgba(247,243,238,.2);}
+
+/* ══════════════════════════════
+   SECTION DIVIDERS
+══════════════════════════════ */
+.wave-div{
+  height:2px;background:linear-gradient(90deg,transparent,var(--ember),transparent);
+  opacity:.2;margin:0;
+}
+
+/* ══════════════════════════════
+   RESPONSIVE
+══════════════════════════════ */
+@media(max-width:1024px){
+  :root{--nav-h:64px;}
+  .nav{padding:0 24px;}
+  .nav-links .nav-link-item{display:none;}
+  /* hide CTA in header on smaller screens to avoid overlap (mobile menu shows CTA) */
+  .nav-links .nav-cta{display:none}
+  .burger{display:flex;}
+  .mobile-menu{padding:24px;}
+
+  .hero,.section{padding-left:24px;padding-right:24px;}
+  .section-full{padding-left:24px;padding-right:24px;}
+  .hero-body{grid-template-columns:1fr;gap:40px;}
+  .hero-stats{grid-template-columns:1fr 1fr;}
+  .hero-scroll{left:24px;}
+
+  .ps-grid{grid-template-columns:1fr;}
+  .biz-steps{grid-template-columns:1fr;}
+  .biz-step{border-right:none;border-bottom:1px solid var(--border);}
+  .biz-step:last-child{border-bottom:none;}
+  .players{grid-template-columns:1fr;}
+  .money-wrap{padding:48px 28px;border-radius:20px;}
+  .rev-grid{grid-template-columns:1fr;}
+  .flow-bar{flex-direction:column;}
+  .flow-node{border-right:none;border-bottom:1px solid rgba(255,255,255,.07);}
+  .flow-node:last-child{border-bottom:none;}
+  .ph-banner{padding:40px 28px;}
+  .ph-banner::after{font-size:80px;right:20px;}
+  .ph-why{grid-template-columns:1fr;}
+  .sectors-grid{grid-template-columns:repeat(2,1fr);}
+  .roadmap{grid-template-columns:1fr 1fr;}
+  .phase{border-bottom:1px solid var(--border);}
+  .e2e-step{grid-template-columns:56px 1fr;gap:24px;}
+  .e2e-right{grid-column:2/-1;}
+  .e2e-step::before{left:28px;}
+  .footer{padding:40px 24px;flex-direction:column;align-items:flex-start;}
+}
+
+@media(max-width:640px){
+  .hero-stats{grid-template-columns:1fr;}
+  .sectors-grid{grid-template-columns:repeat(2,1fr);}
+  .roadmap{grid-template-columns:1fr;}
+  .hero-title{font-size:clamp(48px,14vw,80px);}
+  .s-title{font-size:clamp(32px,8vw,52px);}
+  .ps-badge{position:static;margin-top:28px;}
+  .e2e-step{grid-template-columns:1fr;padding-left:0;}
+  .e2e-step::before{display:none;}
+  .e2e-num-wrap{flex-direction:row;padding-top:0;margin-bottom:16px;}
+  /* reduce 3D effects on very small screens for readability */
+  .hero{perspective:none}
+  .hero-title-line span{transform:none!important}
+  .floating-layer{display:none}
+}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+</style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+
+<!-- ── NAV ── -->
+<nav class="nav" id="nav">
+  <a class="nav-brand" href="index.html">
+    <img src="../assets/ResearchCamp-logo1.png" alt="RC">
+    <div class="nav-brand-text">
+      <span class="nav-brand-name">ResearchCamp</span>
+      <span class="nav-brand-sub">Thinka Ecosystem</span>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a class="nav-link-item" href="../rd.html">R&D Projects</a>
+    <a class="nav-link-item" href="../researchers.html">Expert Network</a>
+    <a class="nav-link-item" href="../industry.html">Industry Hub</a>
+    <a class="nav-cta" href="../index.html">Get Early Access</a>
+  </div>
+  <button class="burger" id="burger" aria-label="Menu">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<div class="mobile-menu" id="mobileMenu">
+  <a href="rd.html">R&D Projects</a>
+  <a href="researchers.html">Expert Network</a>
+  <a href="industry.html">Industry Hub</a>
+  <a href="how-it-works.html">How It Works</a>
+  <a class="mob-cta" href="./index.html">Get Early Access →</a>
+</div>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="page">
+
+<!-- ══════════════════════
+     HERO
+══════════════════════ -->
+<div class="hero">
+  <div class="floating-layer lt" aria-hidden="true"></div>
+  <div class="floating-layer rt" aria-hidden="true"></div>
+  <div class="hero-pill">
+    <span class="hero-pill-dot"></span>
+    <span class="hero-pill-text">Philippines First · Q2 2026</span>
+  </div>
+  <h1 class="hero-title">
+    <span class="hero-title-line"><span>How</span></span>
+    <span class="hero-title-line"><span><em class="stroke">Thinka</em></span></span>
+    <span class="hero-title-line"><span class="fire">Works</span></span>
+  </h1>
+  <div class="hero-body">
+    <p class="hero-sub">
+      Thinka is not just a platform — it's a <strong>complete research economy</strong>. Here's everything: how the business runs, how money flows, who the players are, and why the <strong>Philippines is our launchpad</strong> to the world.
+    </p>
+    <div class="hero-stats">
+      <div class="hero-stat sr sr-scale sr-d1">
+        <div class="hero-stat-num" data-count="700" data-suffix="K+">0</div>
+        <div class="hero-stat-label">Filipino STEM graduates per year</div>
+      </div>
+      <div class="hero-stat sr sr-scale sr-d2">
+        <div class="hero-stat-num" data-count="80" data-suffix="%">0</div>
+        <div class="hero-stat-label">Cost saving vs. Western research firms</div>
+      </div>
+      <div class="hero-stat sr sr-scale sr-d3">
+        <div class="hero-stat-num" data-count="22" data-prefix="₱" data-suffix="B+">0</div>
+        <div class="hero-stat-label">Annual DOST R&D budget</div>
+      </div>
+      <div class="hero-stat sr sr-scale sr-d4">
+        <div class="hero-stat-num" data-count="2000" data-suffix="+">0</div>
+        <div class="hero-stat-label">Higher education institutions in PH</div>
+      </div>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <span class="scroll-label">Scroll to explore</span>
+    <div class="scroll-track"><div class="scroll-dot"></div></div>
+  </div>
+</div>
+
+<div class="wave-div"></div>
+
+<!-- ══════════════════════
+     S1: PROBLEM / SOLUTION
+══════════════════════ -->
+<section class="section">
+  <div class="s-tag sr"><span class="s-tag-line"></span>Why We Exist</div>
+  <h2 class="s-title sr">The Problem<br><em>&amp; Solution</em></h2>
+  <p class="s-desc sr">The world has brilliant researchers who can't reach industry, and industry that can't find the right researchers. Thinka closes that gap permanently.</p>
+
+  <div class="ps-grid">
+    <div class="ps-card problem sr sr-left">
+      <div class="ps-label">The Problem</div>
+      <div class="ps-title">Brilliant research dies in academic drawers</div>
+      <p class="ps-desc">Billions in research funding produce breakthroughs that never reach the market. The connection layer between knowledge and capital is broken — especially in emerging economies.</p>
+      <div class="ps-items">
+        <div class="ps-item"><div class="ps-dot"></div>Philippine universities produce thousands of research outputs yearly — most never commercialized</div>
+        <div class="ps-item"><div class="ps-dot"></div>Companies don't know how to find or hire researchers for specific challenges</div>
+        <div class="ps-item"><div class="ps-dot"></div>Researchers have no professional infrastructure to reach industry</div>
+        <div class="ps-item"><div class="ps-dot"></div>No trusted intermediary exists to broker, vet, and manage these collaborations</div>
+      </div>
+      <div class="ps-badge">
+        <div class="ps-badge-num" data-count="95" data-suffix="%">0%</div>
+        <div class="ps-badge-label">PH research unpublished commercially</div>
+      </div>
+    </div>
+    <div class="ps-card solution sr sr-right">
+      <div class="ps-label">The Thinka Solution</div>
+      <div class="ps-title">A living bridge between knowledge and commerce</div>
+      <p class="ps-desc">Thinka is the professional ecosystem where researchers get discovered and industry gets results. We broker, manage, and guarantee quality on every engagement.</p>
+      <div class="ps-items">
+        <div class="ps-item"><span class="ps-check">✦</span>Curated researcher profiles with verified credentials</div>
+        <div class="ps-item"><span class="ps-check">✦</span>Structured project matching — right expert, right problem</div>
+        <div class="ps-item"><span class="ps-check">✦</span>Managed R&D engagements with milestone tracking</div>
+        <div class="ps-item"><span class="ps-check">✦</span>IP framework and legal scaffolding included</div>
+        <div class="ps-item"><span class="ps-check">✦</span>Philippines-first, then ASEAN, then global</div>
+      </div>
+      <div class="ps-badge" style="background:rgba(0,0,0,.15);border-color:rgba(0,0,0,.12);">
+        <div class="ps-badge-num" data-count="3" data-suffix="×">0×</div>
+        <div class="ps-badge-label">Faster R&D matching than traditional hiring</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wave-div"></div>
+
+<!-- ══════════════════════
+     S2: BUSINESS MODEL
+══════════════════════ -->
+<section class="section">
+  <div class="s-tag sr"><span class="s-tag-line"></span>Business Model</div>
+  <h2 class="s-title sr">How the<br><em>Business</em> Works</h2>
+  <p class="s-desc sr">Thinka operates as a three-sided marketplace — connecting researchers, industry clients, and institutions in a structured, managed collaboration economy.</p>
+
+  <div class="biz-steps">
+    <div class="biz-step sr sr-d1">
+      <div class="biz-n">01</div>
+      <span class="biz-icon">🔎</span>
+      <div class="biz-title">Sourcing &amp; Vetting</div>
+      <p class="biz-desc">ResearchCamp builds and maintains a curated roster of verified researchers from Philippine universities, institutes, and private labs. Each expert is vetted for credentials, track record, and industry-readiness.</p>
+      <span class="biz-tag">Supply Side</span>
+    </div>
+    <div class="biz-step sr sr-d2">
+      <div class="biz-n">02</div>
+      <span class="biz-icon">🤝</span>
+      <div class="biz-title">Matching &amp; Brokering</div>
+      <p class="biz-desc">When a company posts an R&D challenge, Thinka identifies the best-fit researchers, proposes a project structure, timeline, budget, and IP arrangement — then manages the introduction and kickoff.</p>
+      <span class="biz-tag">Core Service</span>
+    </div>
+    <div class="biz-step sr sr-d3">
+      <div class="biz-n">03</div>
+      <span class="biz-icon">📋</span>
+      <div class="biz-title">Managing &amp; Delivering</div>
+      <p class="biz-desc">Thinka oversees the full project lifecycle — milestone reviews, deliverable quality checks, payment releases, and post-project reporting. We're accountable for outcomes, not just introductions.</p>
+      <span class="biz-tag">Value-Add</span>
+    </div>
+  </div>
+
+  <h3 style="font-family:'Playfair Display',serif;font-size:clamp(28px,3vw,40px);font-weight:700;color:var(--ink);margin:72px 0 12px;" class="sr">The Three Players</h3>
+  <p style="font-size:14px;color:var(--muted);margin-bottom:36px;max-width:500px;" class="sr">Every Thinka transaction involves three parties — each with clear roles, expectations, and rewards.</p>
+
+  <div class="players">
+    <div class="player sr sr-d1">
+      <div class="player-icon">🧪</div>
+      <div class="player-name">The Researcher</div>
+      <div class="player-role">Knowledge Supplier</div>
+      <p class="player-desc">Filipino scientists, academics, engineers, and domain experts who have skills and knowledge that industry needs — but no channel to reach them professionally.</p>
+      <div class="player-divider"></div>
+      <div class="player-gets-label">What they get</div>
+      <div class="player-gets-list">
+        <div class="player-gets-item"><div class="gets-dot"></div>Professional exposure to industry partners</div>
+        <div class="player-gets-item"><div class="gets-dot"></div>Project income beyond academic salary</div>
+        <div class="player-gets-item"><div class="gets-dot"></div>IP recognition and full attribution</div>
+        <div class="player-gets-item"><div class="gets-dot"></div>Career elevation and industry credibility</div>
+      </div>
+    </div>
+    <div class="player sr sr-d2">
+      <div class="player-icon">🏢</div>
+      <div class="player-name">The Industry Client</div>
+      <div class="player-role">Knowledge Buyer</div>
+      <p class="player-desc">Philippine SMEs, corporations, and multinational regional offices that need applied research or expert input but lack in-house R&D capacity or the network to find talent.</p>
+      <div class="player-divider"></div>
+      <div class="player-gets-label">What they get</div>
+      <div class="player-gets-list">
+        <div class="player-gets-item"><div class="gets-dot"></div>On-demand R&D without hiring overhead</div>
+        <div class="player-gets-item"><div class="gets-dot"></div>Pre-vetted, right-fit experts fast</div>
+        <div class="player-gets-item"><div class="gets-dot"></div>Managed projects with clear deliverables</div>
+        <div class="player-gets-item"><div class="gets-dot"></div>Cost-efficient vs. international consulting firms</div>
+      </div>
+    </div>
+    <div class="player sr sr-d3">
+      <div class="player-icon">⚙️</div>
+      <div class="player-name">ResearchCamp</div>
+      <div class="player-role">Platform Operator</div>
+      <p class="player-desc">The team behind Thinka — we design the ecosystem, vet all participants, broker engagements, manage projects end-to-end, and ensure quality and trust on all sides.</p>
+      <div class="player-divider"></div>
+      <div class="player-gets-label">What we earn</div>
+      <div class="player-gets-list">
+        <div class="player-gets-item"><div class="gets-dot"></div>15–25% commission on project value</div>
+        <div class="player-gets-item"><div class="gets-dot"></div>Monthly platform subscriptions</div>
+        <div class="player-gets-item"><div class="gets-dot"></div>Premium researcher listing fees</div>
+        <div class="player-gets-item"><div class="gets-dot"></div>Innovation benchmarking reports</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wave-div"></div>
+
+<!-- ══════════════════════
+     S3: MONEY
+══════════════════════ -->
+<section class="section" style="padding-top:0;padding-bottom:0;">
+  <div class="money-wrap sr">
+    <div class="s-tag"><span class="s-tag-line"></span>Revenue Model</div>
+    <h2 class="s-title">How <em>Money</em><br>Flows</h2>
+    <p class="s-desc">Multiple revenue streams ensure Thinka is sustainable from day one — no single point of financial failure.</p>
+
+    <div class="rev-grid">
+      <div class="rev-card sr sr-d1">
+        <div class="rev-head">
+          <div class="rev-ico">💼</div>
+          <div><div class="rev-name">Project Commission</div><div class="rev-type">Primary Revenue</div></div>
+        </div>
+        <p class="rev-desc">Thinka takes a percentage commission on every R&D project facilitated through the platform. The client pays the full project fee; Thinka remits the researcher's share and retains its cut.</p>
+        <div class="rev-amt" data-count="20" data-prefix="" data-suffix="%" style="-webkit-text-fill-color:unset">15–25%</div>
+        <div class="rev-amt-label">of total project value per engagement</div>
+      </div>
+      <div class="rev-card sr sr-d2">
+        <div class="rev-head">
+          <div class="rev-ico">🎟️</div>
+          <div><div class="rev-name">Platform Subscriptions</div><div class="rev-type">Recurring Revenue</div></div>
+        </div>
+        <p class="rev-desc">Industry clients pay a monthly or annual subscription to access Thinka — browse expert profiles, post challenges, and use the R&D pipeline dashboard.</p>
+        <div class="rev-amt" style="-webkit-text-fill-color:unset">₱5K–₱25K</div>
+        <div class="rev-amt-label">per month depending on client tier</div>
+      </div>
+      <div class="rev-card sr sr-d3">
+        <div class="rev-head">
+          <div class="rev-ico">⭐</div>
+          <div><div class="rev-name">Researcher Listings</div><div class="rev-type">Freemium Revenue</div></div>
+        </div>
+        <p class="rev-desc">Basic researcher profiles are free. Premium listings with enhanced visibility, priority matching, and verified badges are available on a paid tier — like LinkedIn Premium for researchers.</p>
+        <div class="rev-amt" style="-webkit-text-fill-color:unset">₱500–₱2K</div>
+        <div class="rev-amt-label">per month for premium researcher profile</div>
+      </div>
+      <div class="rev-card sr sr-d4">
+        <div class="rev-head">
+          <div class="rev-ico">📊</div>
+          <div><div class="rev-name">Innovation Reports</div><div class="rev-type">Data Revenue</div></div>
+        </div>
+        <p class="rev-desc">Sector-specific R&D benchmarking reports, research landscape analyses, and talent availability maps — sold to corporations, government agencies, and investment firms.</p>
+        <div class="rev-amt" style="-webkit-text-fill-color:unset">₱50K–₱200K</div>
+        <div class="rev-amt-label">per commissioned research report</div>
+      </div>
+    </div>
+
+    <div class="flow-title">WHERE THE MONEY GOES — per ₱100,000 project</div>
+    <div class="flow-bar">
+      <div class="flow-node" style="position:relative;overflow:hidden;">
+        <div class="flow-particle" style="animation-delay:0s"></div>
+        <span class="flow-node-emoji">🏢</span>
+        <div class="flow-node-name">Industry Client</div>
+        <div class="flow-node-amt">Pays ₱100,000</div>
+      </div>
+      <div class="flow-node" style="position:relative;overflow:hidden;">
+        <div class="flow-particle" style="animation-delay:.75s"></div>
+        <span class="flow-node-emoji">⚙️</span>
+        <div class="flow-node-name">Thinka Platform</div>
+        <div class="flow-node-amt">Holds &amp; distributes</div>
+      </div>
+      <div class="flow-node" style="position:relative;overflow:hidden;">
+        <div class="flow-particle" style="animation-delay:1.5s"></div>
+        <span class="flow-node-emoji">🧪</span>
+        <div class="flow-node-name">Researcher</div>
+        <div class="flow-node-amt">Receives ₱75–80K</div>
+      </div>
+      <div class="flow-node">
+        <span class="flow-node-emoji">💰</span>
+        <div class="flow-node-name">ResearchCamp</div>
+        <div class="flow-node-amt">Earns ₱20–25K</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wave-div" style="margin-top:120px;"></div>
+
+<!-- ══════════════════════
+     S4: PHILIPPINES FIRST
+══════════════════════ -->
+<section class="section">
+  <div class="s-tag sr"><span class="s-tag-line"></span>Market Strategy</div>
+  <h2 class="s-title sr">Philippines<br><em>First</em></h2>
+  <p class="s-desc sr">We're not starting global and hoping to land in Southeast Asia. We're building deep roots in the Philippines first — then expanding outward with proven infrastructure and playbook.</p>
+
+  <div class="ph-banner sr">
+    <div class="ph-tag">Why the Philippines is the perfect launchpad</div>
+    <div class="ph-title">A nation of<br>researchers waiting<br>to be discovered</div>
+    <p class="ph-sub">The Philippines has over 2,000 higher education institutions, a growing STEM graduate base, and a government actively pushing R&D investment — yet almost no platform connecting this talent to commercial opportunity.</p>
+  </div>
+
+  <div class="ph-why">
+    <div class="ph-card sr sr-d1">
+      <span class="ph-card-icon">🎓</span>
+      <div class="ph-card-title">STEM Talent Pool</div>
+      <p class="ph-card-desc">The Philippines produces hundreds of thousands of STEM graduates annually from UP, DLSU, Ateneo, and UST — many producing publishable, applicable research.</p>
+      <div class="ph-card-stat" data-count="700" data-suffix="K+">0</div>
+      <div class="ph-card-stat-label">STEM graduates per year</div>
+    </div>
+    <div class="ph-card sr sr-d2">
+      <span class="ph-card-icon">💸</span>
+      <div class="ph-card-title">Cost Advantage</div>
+      <p class="ph-card-desc">Philippine research expertise costs a fraction of equivalent talent from Western markets — making Thinka-brokered projects extremely attractive to multinationals.</p>
+      <div class="ph-card-stat" data-count="80" data-suffix="%">0</div>
+      <div class="ph-card-stat-label">Cost saving vs. US/EU research firms</div>
+    </div>
+    <div class="ph-card sr sr-d3">
+      <span class="ph-card-icon">🏛️</span>
+      <div class="ph-card-title">Government Support</div>
+      <p class="ph-card-desc">DOST, PCIERD, and CHED actively fund R&D and industry-academe linkages — Thinka aligns directly with national innovation priorities and open funding calls.</p>
+      <div class="ph-card-stat" data-count="22" data-prefix="₱" data-suffix="B+">0</div>
+      <div class="ph-card-stat-label">Annual DOST R&D budget</div>
+    </div>
+  </div>
+
+  <h3 style="font-family:'Playfair Display',serif;font-size:clamp(24px,3vw,36px);font-weight:700;color:var(--ink);margin-bottom:20px;" class="sr">Priority Sectors in the Philippines</h3>
+  <div class="sectors-grid">
+    <div class="sector sr sr-d1"><div class="sector-emoji-wrap">🌾</div><div class="sector-name">Agriculture &amp; Food Tech</div></div>
+    <div class="sector sr sr-d2"><div class="sector-emoji-wrap">💊</div><div class="sector-name">Pharma &amp; Health</div></div>
+    <div class="sector sr sr-d3"><div class="sector-emoji-wrap">🌊</div><div class="sector-name">Marine &amp; Blue Economy</div></div>
+    <div class="sector sr sr-d4"><div class="sector-emoji-wrap">♻️</div><div class="sector-name">Clean Energy &amp; Env.</div></div>
+    <div class="sector sr sr-d1"><div class="sector-emoji-wrap">🤖</div><div class="sector-name">AI &amp; Digital Tech</div></div>
+    <div class="sector sr sr-d2"><div class="sector-emoji-wrap">🏗️</div><div class="sector-name">Infrastructure &amp; Engineering</div></div>
+    <div class="sector sr sr-d3"><div class="sector-emoji-wrap">📦</div><div class="sector-name">Supply Chain &amp; Logistics</div></div>
+    <div class="sector sr sr-d4"><div class="sector-emoji-wrap">🎓</div><div class="sector-name">EdTech &amp; Skills</div></div>
+  </div>
+
+  <h3 style="font-family:'Playfair Display',serif;font-size:clamp(24px,3vw,36px);font-weight:700;color:var(--ink);margin:56px 0 20px;" class="sr">Expansion Roadmap</h3>
+  <div class="roadmap sr">
+    <div class="phase now">
+      <div class="phase-tag">Now → Q2 2026</div>
+      <div class="phase-period">🇵🇭 Philippines Launch</div>
+      <div class="phase-items">
+        <div class="phase-item"><span class="phase-bullet">✦</span>Build expert roster from PH universities</div>
+        <div class="phase-item"><span class="phase-bullet">✦</span>Onboard first 20 industry clients</div>
+        <div class="phase-item"><span class="phase-bullet">✦</span>Complete 10 paid pilot projects</div>
+        <div class="phase-item"><span class="phase-bullet">✦</span>Establish DOST partnership</div>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-tag">Q3–Q4 2026</div>
+      <div class="phase-period">🌏 ASEAN Expansion</div>
+      <div class="phase-items">
+        <div class="phase-item"><span class="phase-bullet">✦</span>Enter Indonesia &amp; Vietnam</div>
+        <div class="phase-item"><span class="phase-bullet">✦</span>Regional researcher network</div>
+        <div class="phase-item"><span class="phase-bullet">✦</span>Cross-border project facilitation</div>
+        <div class="phase-item"><span class="phase-bullet">✦</span>Series A fundraising</div>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-tag">2027</div>
+      <div class="phase-period">🌐 Asia-Pacific</div>
+      <div class="phase-items">
+        <div class="phase-item"><span class="phase-bullet">✦</span>Australia, Japan, South Korea</div>
+        <div class="phase-item"><span class="phase-bullet">✦</span>MNC partnership program</div>
+        <div class="phase-item"><span class="phase-bullet">✦</span>AI-powered matching engine</div>
+        <div class="phase-item"><span class="phase-bullet">✦</span>Platform licensing to institutions</div>
+      </div>
+    </div>
+    <div class="phase">
+      <div class="phase-tag">2028+</div>
+      <div class="phase-period">🚀 Global Platform</div>
+      <div class="phase-items">
+        <div class="phase-item"><span class="phase-bullet">✦</span>Global researcher marketplace</div>
+        <div class="phase-item"><span class="phase-bullet">✦</span>Government R&D infrastructure</div>
+        <div class="phase-item"><span class="phase-bullet">✦</span>Thinka as the global standard</div>
+        <div class="phase-item"><span class="phase-bullet">✦</span>IPO consideration</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="wave-div"></div>
+
+<!-- ══════════════════════
+     S5: END TO END
+══════════════════════ -->
+<section class="section">
+  <div class="s-tag sr"><span class="s-tag-line"></span>Full Transaction Lifecycle</div>
+  <h2 class="s-title sr">From First Contact<br>to <em>Delivered</em> Results</h2>
+  <p class="s-desc sr">Exactly what happens — step by step — from the moment a client lands on Thinka to the moment they receive their research deliverable and IP documents.</p>
+
+  <div class="e2e">
+    <div class="e2e-step sr">
+      <div class="e2e-num-wrap">
+        <div class="e2e-circle">1</div>
+      </div>
+      <div class="e2e-left">
+        <h3>Client Posts a Challenge</h3>
+        <p>A company registers on Thinka and submits an R&D brief — describing their problem, desired outcome, timeline, and rough budget. No technical jargon required; our team helps structure it properly.</p>
+      </div>
+      <div class="e2e-right">
+        <div class="e2e-right-label">What Happens</div>
+        <div class="e2e-right-items">
+          <div class="e2e-right-item"><div class="e2e-dot"></div>Client fills out guided brief form on Thinka</div>
+          <div class="e2e-right-item"><div class="e2e-dot"></div>Thinka team reviews within 48 business hours</div>
+          <div class="e2e-right-item"><div class="e2e-dot"></div>NDA signed before any matching begins</div>
+        </div>
+      </div>
+    </div>
+    <div class="e2e-step sr">
+      <div class="e2e-num-wrap">
+        <div class="e2e-circle">2</div>
+      </div>
+      <div class="e2e-left">
+        <h3>Thinka Matches &amp; Proposes</h3>
+        <p>Our team scans the researcher roster, identifies 2–3 best-fit candidates, and prepares a full proposal package including scope, timeline, deliverables, and pricing — within 5 business days.</p>
+      </div>
+      <div class="e2e-right">
+        <div class="e2e-right-label">What Happens</div>
+        <div class="e2e-right-items">
+          <div class="e2e-right-item"><div class="e2e-dot"></div>Expert shortlist curated by Thinka team</div>
+          <div class="e2e-right-item"><div class="e2e-dot"></div>Full project scope &amp; pricing proposed</div>
+          <div class="e2e-right-item"><div class="e2e-dot"></div>Client selects preferred researcher</div>
+        </div>
+      </div>
+    </div>
+    <div class="e2e-step sr">
+      <div class="e2e-num-wrap">
+        <div class="e2e-circle">3</div>
+      </div>
+      <div class="e2e-left">
+        <h3>Contracts &amp; Payment Escrow</h3>
+        <p>Thinka handles all contracts — client agreement, researcher agreement, IP ownership, confidentiality clauses. The client pays the full project fee into Thinka escrow before work begins.</p>
+      </div>
+      <div class="e2e-right">
+        <div class="e2e-right-label">What Happens</div>
+        <div class="e2e-right-items">
+          <div class="e2e-right-item"><div class="e2e-dot"></div>Standard contracts issued by ResearchCamp</div>
+          <div class="e2e-right-item"><div class="e2e-dot"></div>Full project fee held in escrow</div>
+          <div class="e2e-right-item"><div class="e2e-dot"></div>Researcher receives 30% upfront to begin</div>
+        </div>
+      </div>
+    </div>
+    <div class="e2e-step sr">
+      <div class="e2e-num-wrap">
+        <div class="e2e-circle">4</div>
+      </div>
+      <div class="e2e-left">
+        <h3>Execution &amp; Monitoring</h3>
+        <p>The researcher does the work. Thinka monitors progress at predefined milestones, reviews interim deliverables, and flags scope issues early. Client has a live dashboard to track progress.</p>
+      </div>
+      <div class="e2e-right">
+        <div class="e2e-right-label">What Happens</div>
+        <div class="e2e-right-items">
+          <div class="e2e-right-item"><div class="e2e-dot"></div>Milestone check-ins every 2 weeks</div>
+          <div class="e2e-right-item"><div class="e2e-dot"></div>Thinka QA review of all interim outputs</div>
+          <div class="e2e-right-item"><div class="e2e-dot"></div>Mid-project payment released at 50% mark</div>
+        </div>
+      </div>
+    </div>
+    <div class="e2e-step sr">
+      <div class="e2e-num-wrap">
+        <div class="e2e-circle">5</div>
+      </div>
+      <div class="e2e-left">
+        <h3>Delivery, Review &amp; Closeout</h3>
+        <p>Final deliverables submitted, Thinka conducts quality review, client approves, and final payment is released. IP transfer documents issued. Both parties rate each other on the platform.</p>
+      </div>
+      <div class="e2e-right">
+        <div class="e2e-right-label">What Happens</div>
+        <div class="e2e-right-items">
+          <div class="e2e-right-item"><div class="e2e-dot"></div>Final deliverable QA by Thinka team</div>
+          <div class="e2e-right-item"><div class="e2e-dot"></div>IP &amp; ownership docs formally transferred</div>
+          <div class="e2e-right-item"><div class="e2e-dot"></div>Final 50% released — Thinka commission deducted</div>
+          <div class="e2e-right-item"><div class="e2e-dot"></div>Both parties rate &amp; review the engagement</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- end .page -->
+
+<!-- ══════════════════════
+     FOOTER
+══════════════════════ -->
+<footer class="footer">
+  <div class="footer-brand">
+    <img src="assets/ResearchCamp-logo1.png" alt="RC">
+    <div>
+      <div class="footer-brand-name">ResearchCamp · Thinka</div>
+      <div class="footer-brand-sub">Philippines · ASEAN · Global · 2026</div>
+    </div>
+  </div>
+  <div class="footer-links">
+    <a href="index.html">Home</a>
+    <a href="rd.html">R&D Projects</a>
+    <a href="researchers.html">Expert Network</a>
+    <a href="industry.html">Industry Hub</a>
+    <a href="how-it-works.html">How It Works</a>
+  </div>
+  <div class="footer-copy">© 2026 ResearchCamp. All rights reserved.</div>
+</footer>
+
+<script>
+/* ══════════════════════════════
+   BACKGROUND CANVAS — 4D warp grid + particles
+══════════════════════════════ */
+(function(){
+  const cv=document.getElementById('bg'),cx=cv.getContext('2d');
+  let W,H,t=0;
+  function resize(){
+    const dpr=window.devicePixelRatio||1;
+    W=window.innerWidth;H=window.innerHeight;
+    cv.width=W*dpr;cv.height=H*dpr;
+    cv.style.width=W+'px';cv.style.height=H+'px';
+    cx.scale(dpr,dpr);
+  }
+  const COLS=18,ROWS=14;
+  function gp(c,r,time){
+    const bx=(c/COLS)*W,by=(r/ROWS)*H;
+    return{
+      x:bx+Math.sin(time*.35+r*.55+c*.28)*20,
+      y:by+Math.cos(time*.28+c*.38+r*.22)*16
+    };
+  }
+  const sparks=Array.from({length:35},()=>({
+    x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,
+    vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,
+    r:Math.random()*1.6+.4,a:Math.random()*.1+.03,
+    pulse:Math.random()*Math.PI*2,
+  }));
+  function frame(){
+    t+=.007;
+    cx.clearRect(0,0,W,H);
+    // grid
+    for(let r=0;r<=ROWS;r++){
+      cx.beginPath();
+      for(let c=0;c<=COLS;c++){const p=gp(c,r,t);c===0?cx.moveTo(p.x,p.y):cx.lineTo(p.x,p.y);}
+      cx.strokeStyle='rgba(22,18,13,.03)';cx.lineWidth=.8;cx.stroke();
+    }
+    for(let c=0;c<=COLS;c++){
+      cx.beginPath();
+      for(let r=0;r<=ROWS;r++){const p=gp(c,r,t);r===0?cx.moveTo(p.x,p.y):cx.lineTo(p.x,p.y);}
+      cx.strokeStyle='rgba(22,18,13,.02)';cx.lineWidth=.6;cx.stroke();
+    }
+    // sparks
+    sparks.forEach(s=>{
+      s.x+=s.vx;s.y+=s.vy;s.pulse+=.045;
+      if(s.x<0)s.x=W;if(s.x>W)s.x=0;if(s.y<0)s.y=H;if(s.y>H)s.y=0;
+      const a=s.a*(0.5+Math.sin(s.pulse)*0.5);
+      const grad=cx.createRadialGradient(s.x,s.y,0,s.x,s.y,s.r*4);
+      grad.addColorStop(0,`rgba(232,86,10,${a*2.5})`);
+      grad.addColorStop(1,'rgba(232,86,10,0)');
+      cx.beginPath();cx.arc(s.x,s.y,s.r*4,0,Math.PI*2);
+      cx.fillStyle=grad;cx.fill();
+    });
+    requestAnimationFrame(frame);
+  }
+  window.addEventListener('resize',resize);
+  resize();frame();
+})();
+
+/* ══════════════════════════════
+   NAV SCROLL + PROGRESS BAR
+══════════════════════════════ */
+const nav=document.getElementById('nav');
+const pb=document.getElementById('progressBar');
+window.addEventListener('scroll',()=>{
+  const scrollY=window.scrollY;
+  const docH=document.body.scrollHeight-window.innerHeight;
+  nav.classList.toggle('scrolled',scrollY>40);
+  pb.style.width=(scrollY/docH*100)+'%';
+},{passive:true});
+
+/* ══════════════════════════════
+   BURGER MENU
+══════════════════════════════ */
+const burger=document.getElementById('burger');
+const mm=document.getElementById('mobileMenu');
+burger.addEventListener('click',()=>{
+  burger.classList.toggle('open');
+  mm.classList.toggle('open');
+});
+mm.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{
+  burger.classList.remove('open');mm.classList.remove('open');
+}));
+
+/* ══════════════════════════════
+   SCROLL REVEAL
+══════════════════════════════ */
+const srEls=document.querySelectorAll('.sr');
+const srObs=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){e.target.classList.add('in');srObs.unobserve(e.target);}
+  });
+},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+srEls.forEach(el=>srObs.observe(el));
+
+/* ══════════════════════════════
+   COUNTER ANIMATION
+══════════════════════════════ */
+function animateCounter(el){
+  const target=parseInt(el.dataset.count)||0;
+  const prefix=el.dataset.prefix||'';
+  const suffix=el.dataset.suffix||'';
+  const dur=1800;
+  const start=performance.now();
+  function update(now){
+    const elapsed=now-start;
+    const progress=Math.min(elapsed/dur,1);
+    // easeOutExpo
+    const ease=progress===1?1:1-Math.pow(2,-10*progress);
+    const val=Math.floor(ease*target);
+    el.textContent=prefix+(target>=1000?val.toLocaleString():val)+suffix;
+    if(progress<1)requestAnimationFrame(update);
+    else el.textContent=prefix+(target>=1000?target.toLocaleString():target)+suffix;
+  }
+  requestAnimationFrame(update);
+}
+
+const counterEls=document.querySelectorAll('[data-count]');
+const counterObs=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){animateCounter(e.target);counterObs.unobserve(e.target);}
+  });
+},{threshold:.5});
+counterEls.forEach(el=>counterObs.observe(el));
+
+/* ══════════════════════════════
+   E2E STEP ACTIVE ON SCROLL
+══════════════════════════════ */
+const e2eSteps=document.querySelectorAll('.e2e-step');
+const stepObs=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    e.target.classList.toggle('active',e.isIntersecting);
+  });
+},{threshold:.5});
+e2eSteps.forEach(s=>stepObs.observe(s));
+
+/* ══════════════════════════════
+   CARD TILT EFFECT (desktop)
+══════════════════════════════ */
+document.querySelectorAll('.player,.ph-card,.rev-card,.hero-stat').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width-.5;
+    const y=(e.clientY-r.top)/r.height-.5;
+    card.style.transform=`translateY(-6px) rotateX(${-y*6}deg) rotateY(${x*6}deg)`;
+    card.style.transition='transform .1s';
+  });
+  card.addEventListener('mouseleave',()=>{
+    card.style.transform='';
+    card.style.transition='transform .5s cubic-bezier(.16,1,.3,1)';
+  });
+});
+/* ══════════════════════════════
+   HERO PARALLAX (subtle 3D / 4D feel)
+══════════════════════════════ */
+const heroEl = document.querySelector('.hero');
+if(heroEl){
+  const titleSpans = document.querySelectorAll('.hero-title-line span');
+  let rafId = null;
+  heroEl.addEventListener('mousemove', e=>{
+    if(rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(()=>{
+      const r = heroEl.getBoundingClientRect();
+      const cx = (e.clientX - r.left)/r.width - 0.5;
+      const cy = (e.clientY - r.top)/r.height - 0.5;
+      const maxZ = 48;
+      titleSpans.forEach((s,i)=>{
+        const depth = (i-1) * 8; // layer depth offset
+        const tx = cx * 14;
+        const ty = cy * 10;
+        const tz = -depth + Math.abs(cx*cx + cy*cy) * maxZ;
+        s.style.transform = `translate3d(${tx}px, ${ty}px, ${tz}px) rotateX(${ -cy*6 }deg) rotateY(${ cx*6 }deg)`;
+      });
+    });
+  });
+  heroEl.addEventListener('mouseleave', ()=>{ titleSpans.forEach(s=>s.style.transform=''); });
+}
+</script>
+</body>
+</html>
